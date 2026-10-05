@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "private-media-image-pipeline"
+version = "0.1.0"
+description = "Generate images, persist private assets, and deliver them through a small Python service."
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+  "fastapi>=0.115,<1",
+  "openai>=1.55,<2",
+  "pydantic>=2.9,<3",
+  "uvicorn>=0.32,<1",
+]
+
+[project.optional-dependencies]
+test = ["httpx>=0.27,<1", "pytest>=8.3,<9"]
+
+[project.scripts]
+media-image-service = "media_pipeline.image_service:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
