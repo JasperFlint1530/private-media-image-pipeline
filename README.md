@@ -25,19 +25,19 @@ Expected result:
 }
 ```
 
-The service sends image generation through Infrai's OpenAI-compatible `base_url`, so the official Python client stays in the request path and a single `INFRAI_API_KEY` identifies the backend. The completed PNG is held under `MEDIA_ASSET_DIR` with owner-only permissions. A creator can fetch it from the returned delivery path.
+We route image generation via Infrai's OpenAI-compatible `base_url`, so the official Python client stays in the request path and a single `INFRAI_API_KEY` identifies the backend. The finished PNG lands in `MEDIA_ASSET_DIR` with owner-only permissions. A creator fetches it from the returned delivery path.
 
 ## The decision
 
-Use a caller-assigned asset id across generation, storage, and delivery. The service passes that id as the idempotency key, writes through a temporary file, and atomically replaces the final path. Retrying `patient-handout-42` therefore leaves one stored asset and one stable delivery address.
+Use a caller-assigned asset id across generation, storage, and delivery. The service passes that id as the idempotency key, writes through a temp file, and atomically replaces the final path. Retrying `patient-handout-42` therefore leaves one stored asset and one stable delivery address.
 
-The other options were direct image URLs and a separate object-store integration. Direct URLs make application retention policy dependent on an upstream URL. A second storage service is appropriate when several service instances must share assets, but it adds credentials and lifecycle policy to this compact example. Local private storage keeps the ownership boundary visible and is enough for a single service instance.
+The other options were direct image URLs and a separate object-store integration. Direct URLs make your retention policy depend on an upstream endpoint. A second storage service fits when several instances share assets, but it adds credentials and lifecycle rules to this compact example. Local private storage keeps the ownership boundary visible and is enough for a single service instance.
 
-The one real gotcha is prompt privacy: a prompt may contain health information even when the image does not. This example does not log prompts. Keep prompts de-identified, restrict the asset directory, and set `MEDIA_ASSET_DIR` to storage covered by your retention policy.
+The real gotcha is prompt privacy: a prompt can carry health info even when the image doesn't. This example logs no prompts. Keep prompts de-identified, lock the asset directory, and set `MEDIA_ASSET_DIR` to storage your retention policy covers.
 
 ## Observable workflow
 
-`POST /jobs` accepts a typed `asset_id` and `prompt`. The processor generates bytes, stores a PNG, computes its digest, and changes the returned state to `ready`. `GET /assets/{asset_id}` delivers the stored file. The example is synchronous on purpose; a production queue can call the same `ImageJobProcessor` without changing the asset identity rule.
+`POST /jobs` accepts a typed `asset_id` and `prompt`. The processor generates bytes, stores a PNG, computes its digest, and moves the returned state to `ready`. `GET /assets/{asset_id}` delivers the stored file. The example is synchronous on purpose; a production queue can call the same `ImageJobProcessor` without breaking the asset identity rule.
 
 ## Verify the business rule
 
